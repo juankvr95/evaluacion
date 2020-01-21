@@ -1,0 +1,80 @@
+
+import signals as sn 
+import matplotlib.pyplot as plt
+from scipy.fftpack  import fft
+import numpy as np
+from scipy import signal
+
+
+x1 = sn.prueba_Dataset
+
+def plot (signal,title):
+    plt.plot(signal);plt.title(title)
+    plt.xlabel("tiempo");plt.ylabel("magnitud")
+    plt.grid("on")
+    plt.show()
+    
+plot(x1,"señal")
+
+##### transformada de fourier
+
+tf1=fft(x1)
+
+def plotf(signal,title):
+    plt.stem(signal);plt.title(title)
+    plt.xlabel("Frecuency"); plt.ylabel("Time")
+    plt.grid("on")
+    plt.xlim(0,len(signal)/2)
+    plt.show()
+
+plotf(tf1,"transformada")
+
+
+##### señal normalizada 
+
+
+norm_signal=np.zeros(len(x1))
+for i,num in enumerate(x1):
+    norm_signal[i]=float(x1[i]/max(x1))
+
+plot(norm_signal,"Señal Normalizada")
+
+
+
+##### filtro fir
+
+highpas_coef=signal.firwin(21,2,nyq=100,pass_zero=False,window='bartlett')
+signal_output=signal.convolve(norm_signal,highpas_coef,mode='same')
+lowpass_coef=signal.firwin(21,30,nyq=100, window='bartlett')
+output=signal.convolve(signal_output,lowpass_coef, mode='same')
+plot(output,"Señal Filtrada Ventana Bartlett")
+
+
+highpas_coef=signal.firwin(21,2,nyq=100,pass_zero=False,window='blackman')
+signal_output=signal.convolve(norm_signal,highpas_coef,mode='same')
+lowpass_coef=signal.firwin(21,40,nyq=100, window='blackman')
+output=signal.convolve(signal_output,lowpass_coef, mode='same')
+plot(output,"Señal Filtrada Ventana Blackman")
+
+
+plt.subplot(2,1,1)
+plt.plot(norm_signal)
+plt.subplot(2,1,2)
+plt.plot(filtered4)
+
+
+
+#Filtros IIR
+
+sos = signal.cheby1(2, 1,2, 'hp', fs=100,analog=False, output='sos')
+filtered1 = signal.sosfilt(sos, norm_signal)
+sos2 = signal.cheby1(2, 1,5, 'lp', fs=100,analog=False, output='sos')
+filtered2 = signal.sosfilt(sos2, filtered1)
+plot(filtered2,"Filtro IIR Chebyshef")
+
+
+butter = signal.butter(3, 2, 'hp', fs=100,analog=False, output='sos')
+filtered3 = signal.sosfilt(butter, norm_signal)
+butter2 = signal.butter(3, 5, 'lp', fs=100,analog=False, output='sos')
+filtered4 = signal.sosfilt(butter2, filtered3)
+plot(filtered4,"Filtro IIR Butterworth")
